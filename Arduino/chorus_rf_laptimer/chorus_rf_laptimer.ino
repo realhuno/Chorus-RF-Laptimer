@@ -42,14 +42,14 @@ TODO: there's possible optimization in send queue:
 
 #define EXPERIMENTAL_FEATURES_AVAILABLE // comment out if current code version doesn't contain any experimental features
 
-// #define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
     #define DEBUG_CODE(x) do { x } while(0)
 #else
     #define DEBUG_CODE(x) do { } while(0)
 #endif
-
+uint8_t lapsend = 0;
 uint8_t MODULE_ID = 0;
 uint8_t MODULE_ID_HEX = '0';
 
@@ -266,10 +266,10 @@ int32_t timeAdjustment = 0;
 
 //----- other globals------------------------------
 uint8_t allowLapGeneration = 0;
-uint8_t channelIndex = 0;
+uint8_t channelIndex = 3;
 uint8_t bandIndex = 0;
-uint8_t raceMode = 0; // 0: race mode is off; 1: lap times are counted relative to last lap end; 2: lap times are relative to the race start (sum of all previous lap times);
-uint8_t isSoundEnabled = 1;
+uint8_t raceMode = 1; // =0 0: race mode is off; 1: lap times are counted relative to last lap end; 2: lap times are relative to the race start (sum of all previous lap times);
+uint8_t isSoundEnabled = 0;
 uint8_t isConfigured = 0; //changes to 1 if any input changes the state of the device. it will mean that externally stored preferences should not be applied
 uint8_t newLapIndex = 0;
 uint8_t shouldWaitForFirstLap = 0; // 0 means start table is before the laptimer, so first lap is not a full-fledged lap (i.e. don't respect min-lap-time for the very first lap)
@@ -304,7 +304,36 @@ uint8_t proxyBufDataSize = 0;
 #include "mainDetectionAlgorithm.h"
 
 // ----------------------------------------------------------------------------
+
+//Telemetry Frsky
+#include <SPort.h>                  //Include the SPort library
+
+SPortHub hub(0x12, 5);  
+SimpleSPortSensor lapsensor0(0x1AEB);   //Sensor with ID 0x5900
+SimpleSPortSensor lapsensor1(0x1AEC);   //Sensor with ID 0x5900
+SimpleSPortSensor lapsensor2(0x1AED);   //Sensor with ID 0x5900
+SimpleSPortSensor lapsensor3(0x1AEE);   //Sensor with ID 0x5900
+SimpleSPortSensor sensor(0x5900);    
+
+
+
+
+
+
+//
 void setup() {
+//Telemetry Frsky init
+  hub.commandId = 0x1B;                               //Listen to data send to thist physical ID
+  hub.commandReceived = handleCommand;          
+  hub.registerSensor(lapsensor0);       //Add sensor to the hub
+  hub.registerSensor(lapsensor1);       //Add sensor to the hub
+  hub.registerSensor(lapsensor2);       //Add sensor to the hub
+  hub.registerSensor(lapsensor3);       //Add sensor to the hub
+  hub.registerSensor(sensor);       //Add sensor to the hub
+  
+  hub.begin();
+
+  
     // initialize led pin as output.
     pinMode(ledPin, OUTPUT);
     digitalHigh(ledPin);
@@ -322,11 +351,12 @@ void setup() {
     // set the channel as soon as we can
     // faster boot up times :)
     frequency = setModuleChannel(channelIndex, bandIndex);
+    frequency = setModuleChannel(3, 0);
 
     Serial.begin(BAUDRATE);
 
     initFastADC();
-
+    
     // Setup Done - Turn Status ledPin off.
     digitalLow(ledPin);
 
@@ -336,9 +366,14 @@ void setup() {
         pinMode(bufferBusyPin, OUTPUT);
         pinMode(dbgPin, OUTPUT);
     );
+    setModuleActive(1);
+    
 }
 // ----------------------------------------------------------------------------
 void loop() {
+  
+        //Set the sensor value
+  hub.handle();
     DEBUG_CODE(
         digitalToggle(loopTimerPin);
     );
@@ -544,6 +579,15 @@ void loop() {
             }
         }
     }
+
+  //Frsky Telemetry Sensor  
+  lapsensor0.value = lapTimes[newLapIndex-1];            //Overall LAP
+  lapsensor1.value = raceMode;
+  lapsensor2.value = rssi;
+  lapsensor3.value = frequency;   
+  sensor.value = 1234;  
+  hub.handle();
+
 }
 // ----------------------------------------------------------------------------
 uint8_t addToSendQueue(uint8_t item) {
@@ -603,6 +647,30 @@ void setupToSendSingleItem(uint8_t itemId) {
     shouldSendSingleItem = 1;
 }
 // ----------------------------------------------------------------------------
+// -----------------------------LUA Telemetry Callback
+
+void handleCommand(int prim, int applicationId, int value) {
+  hub.sendCommand(0x19, applicationId, value + 1);    //Send a command back to lua, with 0x32 as reply and the value + 1
+  
+  if(value==35){
+    //+
+    channelIndex++;
+    setChannel(channelIndex);
+  }
+  
+  if(value==36){
+    //-
+    channelIndex--;
+     setChannel(channelIndex);
+  }
+
+  if(value>50){
+    setThresholdValue(value);
+  }
+}
+
+// ----------------------------------------------------------------------------
+
 void handleSerialControlInput(uint8_t *controlData, uint8_t length) {
     uint8_t controlByte = controlData[0];
     uint8_t valueToSet;
@@ -1075,10 +1143,10 @@ void gen_rising_edge(int pin) {
 uint16_t readRSSI() {
     int rssiA = 0;
 
-    analogRead(rssiPinA); // first fake read to improve further readings accuracy (as suggested by Nicola Gorghetto)
+    analogRead(A6); // first fake read to improve further readings accuracy (as suggested by Nicola Gorghetto)
 
     for (uint8_t i = 0; i < RSSI_READS; i++) {
-        rssiA += analogRead(rssiPinA);
+        rssiA += analogRead(A6);
     }
 
     rssiA = rssiA/RSSI_READS; // average of RSSI_READS readings
