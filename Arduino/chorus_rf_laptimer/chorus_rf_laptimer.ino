@@ -308,7 +308,7 @@ uint8_t proxyBufDataSize = 0;
 //Telemetry Frsky
 #include <SPort.h>                  //Include the SPort library
 
-SPortHub hub(0x12, 5);  
+SPortHub hub(0x12, telemetryPin);     //adress and telemetry pin
 SimpleSPortSensor lapsensor0(0x1AEB);   //Sensor with ID 0x5900
 SimpleSPortSensor lapsensor1(0x1AEC);   //Sensor with ID 0x5900
 SimpleSPortSensor lapsensor2(0x1AED);   //Sensor with ID 0x5900
