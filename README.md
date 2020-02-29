@@ -6,7 +6,13 @@ Steps!
 3. bind receiver with the radio and discover sensors
 4. upload LapTmrDEV.lua to the radio and execute
 
-done...
+Change frequency by press + and - on the radio (only raceband)
+Change threshold by tuning with s2 on the radio. Set the new threshold by pressing the menu button on the radio
+
+Very experimental. Only Raceband Supportet.
+R4 set by default and racemod is ON
+
+
 
 
 # Chorus RF Laptimer
