@@ -12,7 +12,15 @@ Change threshold by tuning with s2 on the radio. Set the new threshold by pressi
 Very experimental. Only Raceband Supportet.
 R4 set by default and racemod is ON
 
+<img src="docs/img/hardware.jpg" alt="Chorus device" height="400"/>
+The Hardware
 
+<img src="docs/img/gui.jpg" alt="Chorus device" height="400"/>
+The GUI
+
+
+<img src="docs/img/telemetry.jpg" alt="Chorus device" height="400"/>
+Discover new sensors!
 
 
 # Chorus RF Laptimer
