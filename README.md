@@ -1,3 +1,6 @@
+# Telemetry Support with Frsky Taranis Receiver!
+
+
 # Chorus RF Laptimer
 
 <img src="docs/img/logo.png" align="left" alt="Logo" width="200"/>
