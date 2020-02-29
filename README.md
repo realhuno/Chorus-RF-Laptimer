@@ -1,5 +1,14 @@
 # Telemetry Support with Frsky Taranis Receiver!
 
+Steps!
+1. solder Frsky receiver to Pin 5 on Arduino Nano.
+2. download s.port library https://github.com/RealTadango/FrSky compile and upload Chorus-RF-Laptimer-telemetry sketch 
+3. bind receiver with the radio and discover sensors
+4. upload LapTmrDEV.lua to the radio and execute
+
+done...
+
+
 # Chorus RF Laptimer
 
 <img src="docs/img/logo.png" align="left" alt="Logo" width="200"/>
